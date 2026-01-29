@@ -53,10 +53,16 @@ export const authOptions: NextAuthOptions = {
     session: {
         strategy: "jwt",
     },
-    secret: process.env.NEXTAUTH_SECRET,
-    debug: process.env.NODE_ENV === "development",
+    pages: {
+        signIn: "/auth/login",
+    },
+    // On Hostinger, process.env might be tricky in some runtimes. 
+    // We provide a fallback for debugging, but user SHOULD set NEXTAUTH_SECRET in hPanel.
+    secret: process.env.NEXTAUTH_SECRET || "ptah-systems-super-secret-key-123",
+    debug: true, // Enable debug for production temporarily to catch errors in logs
     callbacks: {
         async session({ session, token }) {
+            console.log("NextAuth Session Callback - Token:", !!token);
             if (token && session.user) {
                 session.user.role = token.role as string;
                 session.user.id = token.id as string;
@@ -65,6 +71,7 @@ export const authOptions: NextAuthOptions = {
         },
         async jwt({ token, user }) {
             if (user) {
+                console.log("NextAuth JWT Callback - User role:", (user as any).role);
                 token.role = (user as any).role;
                 token.id = user.id;
             }
